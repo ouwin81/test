@@ -1,55 +1,305 @@
 <!DOCTYPE html>
+
 <html lang="ko">
-<head>
-  <meta charset="utf-8"/>
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-  <title>9급 공무원 직렬 추천</title>
-  <!-- ... 스타일 생략 ... -->
-</head>
-<body style="background-image: url('https://cdn.pixabay.com/photo/2021/03/22/06/55/students-6113251_1280.jpg'); ...">
-<div style="...">
-  <img src="https://img.eduwill.net/Img2/Common/BI/type2/live/Logo.svg" alt="에듀윌 로고" ... />
-</div>
-<div id="recommend-tab">
-  <h1>9급 공무원 직렬 추천 체크리스트</h1>
-  <div style="...">
-    <div style="text-align:center; margin-bottom: 30px;">
-      <button onclick="showTab('recommend')" style="...">직렬 추천</button>
-      <button onclick="showTab('subject')" style="...">과목 검색</button>
-      <button onclick="goToStatsPage()" style="...">경쟁률·응시율·합격선</button>
-    </div>
-    <!-- ... 설문 폼 및 추천 결과 코드 생략 ... -->
-  </div>
-</div>
-<div id="subject-tab" style="display:none;">
-  <h1>9급 공무원 직렬별 전공과목 자료 링크</h1>
-  <input id="search" placeholder="직렬 또는 과목명을 입력하세요..." type="text"/>
-  <div style="...">
-    <button onclick="showTab('recommend')" style="...">처음으로 돌아가기</button>
-  </div>
-  <div id="subject-links"></div>
-  <script>
-    const data = `직렬명	과목	드라이브링크
-검찰	형법	https://drive.google.com/file/d/1Y0oQKDILGbO5yb9ulvv1dDEfLdqFuJhJ/view?usp=drive_link
-... 나머지 과목 링크 생략 ...
-`;
-    // ... 과목 검색 JS 코드 ...
-  </script>
-</div>
-<script>
-  function showTab(tab) {
-    document.getElementById("recommend-tab").style.display = tab === 'recommend' ? 'block' : 'none';
-    document.getElementById("subject-tab").style.display = tab === 'subject' ? 'block' : 'none';
-    if (tab === 'subject' && typeof renderList === 'function') {
-      renderList();
+<head><meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<meta charset="utf-8"/>
+<title>9급 공무원 직렬 추천</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;600;700&display=swap');
+  body {
+    font-family: 'Noto Sans KR', sans-serif;
+    background-color: #f4f6fa;
+    margin: 0;
+    padding: 40px;
+    color: #2d3436;
+  }
+  h1 {
+    text-align: center;
+    margin-bottom: 30px;
+    color: #333333;
+  }
+  h2 {
+    font-size: 22px;
+    color: #fcb040;
+  }
+  #search {
+    display: block;
+    margin: 0 auto 30px auto;
+    padding: 12px 20px;
+    width: 100%;
+    max-width: 600px;
+    font-size: 16px;
+    border: 1px solid #ced6e0;
+    border-radius: 8px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+  }
+  .card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 30px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
+  }
+  .card ul {
+    list-style: none;
+    padding-left: 0;
+    margin-top: 10px;
+  }
+  .card li {
+    margin: 6px 0;
+  }
+  .card a {
+    text-decoration: none;
+    color: #333333;
+    padding: 6px 10px;
+    display: inline-block;
+    border-radius: 6px;
+    transition: background 0.2s ease;
+  }
+  .card a:hover {
+    background-color: #dfe6e9;
+  }
+  .guide-text {
+    margin-top: 12px;
+    font-style: italic;
+    color: #636e72;
+  }
+  .tab-buttons {
+    text-align: center;
+    margin-bottom: 30px;
+  }
+  .tab-buttons button, .back-button {
+    padding: 10px 22px;
+    font-size: 15px;
+    border: none;
+    background-color: #fcb040;
+    color: white;
+    border-radius: 6px;
+    margin: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  }
+  .tab-buttons button:hover, .back-button:hover {
+    background-color: #e5942d;
+  }
+
+    .tab-buttons button:hover, .back-button:hover {
+        background-color: #e5942d;
+    }
+    </style>
+<style>
+  @media screen and (max-width: 768px) {
+    body {
+      padding: 20px;
+    }
+    #search {
+      font-size: 14px;
+      padding: 10px 14px;
+    }
+    .tab-buttons button, .back-button {
+      font-size: 14px;
+      padding: 8px 16px;
+    }
+    .card {
+      padding: 15px;
+    }
+    h1 {
+      font-size: 20px;
+    }
+    h2 {
+      font-size: 18px;
     }
   }
+</style>
+</head>
+<body style="background-image: url('https://cdn.pixabay.com/photo/2021/03/22/06/55/students-6113251_1280.jpg'); background-size: cover; background-position: center center; background-attachment: fixed; background-repeat: no-repeat; background-color: rgba(255,255,255,0.85);">
+<div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+    background: rgba(0,0,0,0.35); z-index: -1;"></div>
+<div style="text-align: center; margin-bottom: 30px;">
+<img alt="에듀윌 로고" src="https://img.eduwill.net/Img2/Common/BI/type2/live/Logo.svg" style="height: 60px; filter: drop-shadow(1px 1px 2px #000);"/>
+</div>
+<div id="recommend-tab">
+<h1 style="text-align: center; font-size: 32px; font-weight: 700; color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.6); margin-bottom: 20px;">9급 공무원 직렬 추천 체크리스트</h1>
+<div style="max-width: 960px; margin: 40px auto; background: #ffffffdd; padding: 40px 50px; border-radius: 16px; box-shadow: 0 6px 16px rgba(0,0,0,0.1); background-color: rgba(255, 255, 255, 0.95);"><div style="text-align:center; margin-bottom: 30px;">
+<button onclick="showTab('recommend')" style="padding: 10px 20px; font-size: 16px;">직렬 추천</button>
+<button onclick="showTab('subject')" style="padding: 10px 20px; font-size: 16px;">과목 검색</button>
+  <button onclick="goToStatsPage()" style="padding: 10px 20px; font-size: 16px;">경쟁률·응시율·합격선</button>
+
+</div><form id="quizForm">
+<div class="question">
+<strong>1. 사람과 대면하는 업무를 선호하나요?</strong>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q1" required="" type="radio" value="admin,social,police"/> 예</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q1" type="radio" value="it,stat"/> 아니오</label>
+</div>
+<div class="question">
+<strong>2. 반복 업무보다 분석/자료 기반 업무가 더 맞다고 느끼시나요?</strong>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q2" type="radio" value="stat,it"/> 예</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q2" type="radio" value="admin"/> 아니오</label>
+</div>
+<div class="question">
+<strong>3. 자격증 또는 전공이 있나요? (중복 선택 가능)</strong>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="social"/> 사회복지학/사회복지사</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="nurse"/> 간호학/간호사</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="it"/> 컴퓨터공학/정보처리기사</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="tech"/> 건축/토목/기계 등 기사자격증</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="stat"/> 통계학/계량경제학</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="police"/> 경찰학/형법/형사소송법</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="admin"/> 행정학/정치외교학/법학</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q3" type="checkbox" value="semoo"/> 회계학/세무학/CPA/CTA</label>
+</div>
+<div class="question">
+<strong>4. 교대근무(야간 포함)가 가능한가요?</strong>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q4" type="radio" value="correction,immigration,police"/> 예</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q4" type="radio" value=""/> 아니오</label>
+</div>
+<div class="question">
+<strong>5. 실내 업무보다 현장 업무가 더 어울린다고 느끼시나요?</strong>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q5" type="radio" value="tech,correction"/> 예</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q5" type="radio" value="admin,it"/> 아니오</label>
+</div>
+<div class="question">
+<strong>6. 숫자 계산이나 통계 자료 다루는 데 자신이 있나요?</strong>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q6" type="radio" value="stat,semoo"/> 예</label>
+<label style="font-size: 16px; display: block; margin: 8px 0 12px 20px; color: #2d3436; line-height: 1.6;"><input name="q6" type="radio" value=""/> 아니오</label>
+</div>
+<button type="submit">직렬 추천 받기</button>
+</form><div class="result" id="resultBox" style="display:none">
+<h2 style="font-size: 22px; font-weight: 600; margin-top: 40px; margin-bottom: 20px; color: #2d3436; border-bottom: 2px solid #fcb040; padding-bottom: 8px; line-height: 1.6; margin-top: 50px; margin-bottom: 24px;">추천 직렬</h2>
+<ul id="recommendList"></ul>
+<div class="reason" id="reasonBox"></div>
+</div><script>
+    document.getElementById("quizForm").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const scoreMap = {};
+      const answerLog = [];
+
+      ["q1", "q2", "q4", "q5", "q6"].forEach(q => {
+        const values = (form.get(q) || "").split(',');
+        values.forEach(v => {
+          if (v) {
+            scoreMap[v] = (scoreMap[v] || 0) + 1;
+            answerLog.push(`• ${q.toUpperCase()}: ${v}`);
+          }
+        });
+      });
+
+      (form.getAll("q3") || []).forEach(v => {
+        if (v) {
+          scoreMap[v] = (scoreMap[v] || 0) + 2;
+          answerLog.push(`• Q3: ${v} 자격증/전공 보유`);
+        }
+      });
+
+      const 직렬이름 = {
+        admin: "일반행정직",
+        social: "사회복지직",
+        nurse: "간호직/보건직",
+        it: "전산직",
+        tech: "시설/기술직",
+        stat: "통계직",
+        correction: "교정직",
+        immigration: "출입국관리직",
+        semoo: "세무직",
+        police: "경찰직"
+      };
+
+      const 합격선 = {
+        admin: "93점 (2025 국가직)",
+        social: "86점 (2024 경기도)",
+        nurse: "91점 (2024 경기도)",
+        it: "93점 (2025 국가직)",
+        tech: "83점 (2024 경기도)",
+        stat: "85점 (2025 국가직)",
+        correction: "80점 (2025 국가직)",
+        immigration: "86점 (2025 국가직)",
+        semoo: "80점 (2025 국가직)",
+        police: "87점 (2025 국가직)"
+      };
+
+      const sorted = Object.entries(scoreMap)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 3);
+
+      const list = document.getElementById("recommendList");
+      const reasonBox = document.getElementById("reasonBox");
+      list.innerHTML = "";
+
+      sorted.forEach(([key, score]) => {
+        const li = document.createElement("li");
+        const label = 직렬이름[key] || key;
+        const cutoff = 합격선[key] ? ` / 최근 합격선: ${합격선[key]}` : "";
+        li.textContent = `${label} (적합도: ${score})${cutoff}`;
+        list.appendChild(li);
+      });
+
+      reasonBox.innerHTML = `<strong>선택 요약:</strong><br>${answerLog.join("<br>")}`;
+      document.getElementById("resultBox").style.display = "block";
+    });
+  
   function goToStatsPage() {
     window.open('https://govlab.eduwill.net/schedule/pds', '_blank');
   }
-  window.onload = function() {
-    showTab('recommend');
+
+</script></div></div><div id="subject-tab" style="display:none;"><h1 style="text-align: center; font-size: 32px; font-weight: 700; color: white; text-shadow: 1px 1px 4px rgba(0,0,0,0.6); margin-bottom: 20px;">9급 공무원 직렬별 전공과목 자료 링크</h1><input id="search" placeholder="직렬 또는 과목명을 입력하세요..." type="text"/>
+<div style="text-align:center; margin-top: 10px; margin-bottom: 20px;">
+<button onclick="showTab('recommend')" style="padding: 10px 20px; font-size: 16px;">처음으로 돌아가기</button>
+</div>
+<div id="subject-links"></div><script>
+    const data = `직렬명	과목	드라이브링크\n건축	건축계획	https://drive.google.com/file/d/1ek5QsfZCslMv3fJl3oqfLMrTxgwDVkQ_/view?usp=drive_link\n건축	건축구조	https://drive.google.com/file/d/1OZtc6z0ybWa5wnMFaLEdggaNa5bB2gcy/view?usp=drive_link\n검찰	형법	https://drive.google.com/file/d/1OZtc6z0ybWa5wnMFaLEdggaNa5bB2gcy/view?usp=drive_link\n검찰	형사소송법	https://drive.google.com/file/d/13tuD1stLGzB1FTi69DaF8pixbCrZTX2r/view?usp=drive_link\n고용노동	노동법개론	https://drive.google.com/file/d/1aWLDIVxcb63r-n3ChDfnggExc1SPQdGR/view?usp=drive_link\n고용노동	행정법총론	https://drive.google.com/file/d/1aP5kfmSJEDkAvnL7kWrt7plQuVQ5_uQO/view?usp=drive_link\n공통과목	국어	https://drive.google.com/file/d/1QBDvCNusp7FZqsZDOwFS2_rRtL_c5kQh/view?usp=drive_link\n공통과목	영어	https://drive.google.com/file/d/1W_qMNgHswT85mfLAxKTZmKak7jNVZu5X/view?usp=drive_link\n공통과목	한국사	https://drive.google.com/file/d/1DsU7rm9laQluDznDDtQCFe1EbTFnOgnY/view?usp=drive_link\n관세	관세법개론	https://drive.google.com/file/d/1cLSfF7RDa_Frhhl6ouuKC2uv2zRvsmTF/view?usp=drive_link\n관세	회계원리	https://drive.google.com/file/d/1A-FKWqgKOve85cIEmFmR8nYQijRbYd84/view?usp=drive_link\n교육행정	교육학개론	https://drive.google.com/file/d/102vf6higiJX9-XwuOy8eCad-k28CFCOo/view?usp=drive_link\n교육행정	행정법총론	https://drive.google.com/file/d/1aP5kfmSJEDkAvnL7kWrt7plQuVQ5_uQO/view?usp=drive_link\n교정	교정학개론	https://drive.google.com/file/d/1oOzm0tJ8RxMdS4I6OaoS5miOC0JGIbhn/view?usp=drive_link\n교정	형사소송법개론	https://drive.google.com/file/d/1EfC5DXoZUQl6-Z9fPBj_8mFwSZJXxij1/view?usp=drive_link\n데이터	데이터베이스론	https://drive.google.com/file/d/1iH4sLI3_Ynl6qocpnO8cZMRvGQExZs8X/view?usp=drive_link\n데이터	알고리즘	https://drive.google.com/file/d/1iAut2pPs2tcn1foE1xW8BJlkaGNZ8yId/view?usp=drive_link\n방재안전	안전관리론	https://drive.google.com/file/d/10BrijpnRZIF_D8IMfP07G37hdm9qRGTc/view?usp=drive_link\n방재안전	재난관리론	https://drive.google.com/file/d/17hDPybVZPi2n3ihQNgXxvCVDd_uJ9qU1/view?usp=drive_link\n보호	사회복지학개론	https://drive.google.com/file/d/1OZLk8SF2rg7fdeGaOXnAErpwqi0x9Ma-/view?usp=drive_link\n보호	형사정책개론	https://drive.google.com/file/d/1r4OIIKZCW0NKK_4c7avEqZU9trXCk9wQ/view?usp=drive_link\n사회복지직	사회복지학개론	https://drive.google.com/file/d/1OZLk8SF2rg7fdeGaOXnAErpwqi0x9Ma-/view?usp=drive_link\n사회복지직	행정법총론	https://drive.google.com/file/d/1aP5kfmSJEDkAvnL7kWrt7plQuVQ5_uQO/view?usp=drive_link\n산림자원	임업경영	https://drive.google.com/file/d/1bQpXxYxlHwRoi1xXIp8AdiAfTcfqsAvj/view?usp=drive_link\n산림자원	조림	https://drive.google.com/file/d/1kAUzmbvaIxh_whYUJ-wFvzy3a7vv60UL/view?usp=drive_link\n선거행정	공직선거법	https://drive.google.com/file/d/17HgVEIDjYu6Tk-pKi_bKdssARrE9eWHf/view?usp=drive_link\n선거행정 	행정법총론	https://drive.google.com/file/d/1aP5kfmSJEDkAvnL7kWrt7plQuVQ5_uQO/view?usp=drive_link\n세무	세법개론	https://drive.google.com/file/d/1d0kaRAvKHTAIhzdISnm0M5Dh86JKrRIR/view?usp=drive_link\n세무	회계학	https://drive.google.com/file/d/1LsG8zyY_IHJiwfTY1dbtr70Xs_0JQq4F/view?usp=drive_link\n시설조경	조경계획 및 설계	https://drive.google.com/file/d/1W_DhLy-JCtlwRrlYpPoaYGji2Jh2zXa1/view?usp=drive_link\n시설조경	조경학	https://drive.google.com/file/d/1vy8mhE9rHTJWw4SVYVmiHMVjqkeLAKS5/view?usp=drive_link\n일반기계	기계설계	https://drive.google.com/file/d/1ragoedEgJYg-DfenELm8H-Ke0ip2AvYT/view?usp=drive_link\n일반기계	기계일반	https://drive.google.com/file/d/1wYd9isD9ZQVSeuQ-2inj1XECtbsvpSb_/view?usp=drive_link\n일반농업	식용작물	https://drive.google.com/file/d/18-MSiBeE25UI_slEwIjir9RwWchzf9AK/view?usp=drive_link\n일반농업	재배학개론	https://drive.google.com/file/d/1i5yul8KOUsCSC3D9m5V5TojJQb-lcGFr/view?usp=drive_link\n일반토목	응용역학개론	https://drive.google.com/file/d/10qQL_cVgl1VkJz6nBZ62B9dnOXhIGCSE/view?usp=drive_link\n일반토목	토목설계	https://drive.google.com/file/d/1y9-XQk4HMWuibqAoVeRkOeLkQBKi5tm1/view?usp=drive_link\n일반행정	행정법총론	https://drive.google.com/file/d/1aP5kfmSJEDkAvnL7kWrt7plQuVQ5_uQO/view?usp=drive_link\n일반행정	행정학개론	https://drive.google.com/file/d/1WU6OL6nvftA2UG3huQ7z78jy6Yo0nqfR/view?usp=drive_link\n일반환경	화학	https://drive.google.com/file/d/1g7fVWPlfsQY18KkFYUS6yJRVf1hD5bAd/view?usp=drive_link\n일반환경	환경공학개론	https://drive.google.com/file/d/1f7FVNguyEN2BCigRl7BdJkK3EEo_znPS/view?usp=drive_link\n전기	전기기기	https://drive.google.com/file/d/1ri8oPu0R2QOyMNSE6d0bPX6Kob2OEJ5X/view?usp=drive_link\n전기	전기이론	https://drive.google.com/file/d/11DZ61TfastFAEQxciho5zp0XK-yZlEQr/view?usp=drive_link\n전산개발	정보보호론	https://drive.google.com/file/d/1SeWez6yvLls0UytkeNxvqBwgVgDVDIFP/view?usp=drive_link\n전산개발	컴퓨터일반	https://drive.google.com/file/d/1evjyWwYUDItSb8XrgzsPeEkIa_cgd2vu/view?usp=drive_link\n전송기술	무선공학개론	https://drive.google.com/file/d/1bIdxbBq-az-o-oMxv0nCu3PK_w4H2leo/view?usp=drive_link\n전송기술	전자공학개론	https://drive.google.com/file/d/1mymhyKpSxrnf0mJVqMhq24FXhyopuCtl/view?usp=drive_link\n정보보호	네트워크 보안 	https://drive.google.com/file/d/1TnOA5K6Sdqa7C-8gLICxOgTo7NRxLA66/view?usp=drive_link\n정보보호	정보시스템 보안	https://drive.google.com/file/d/1wfMmzxb3vgG45q8BxTEylLX6Ae9olLt8/view?usp=drive_link\n직업상담	노동법개론	https://drive.google.com/file/d/1z7aCug931UgAXxD6vOmkC7bjhvT8ThPS/view?usp=drive_link\n직업상담	직업상담 심리학개론	https://drive.google.com/file/d/14vDWPXMblKTRQpUWCc93Xkll1MpKqEcA/view?usp=drive_link\n철도경찰	형법총론	https://drive.google.com/file/d/1ECzeALL1zGj37WltqgQG7aCvmG9n8BOa/view?usp=drive_link\n철도경찰	형사소송법개론	https://drive.google.com/file/d/1Cy7_srpwoY2GhSDk1N_wXX3nT_p9T5Yz/view?usp=drive_link\n출입국관리	국제법개론	https://drive.google.com/file/d/1UyTyU0xtGhdENq-Nmu44EmqhDp7haZRD/view?usp=drive_link\n출입국관리	행정법총론	https://drive.google.com/file/d/1aP5kfmSJEDkAvnL7kWrt7plQuVQ5_uQO/view?usp=drive_link\n통계	경제학개론	https://drive.google.com/file/d/13mESpR-d0aXfn7ZQ6cO9MQ-6VeffIP_-/view?usp=drive_link\n통계	통계학개론	https://drive.google.com/file/d/1G4HkWJa4tTUvZrizj5o_w8nTkr60Zhxi/view?usp=drive_link\n화공	공업화확	https://drive.google.com/file/d/1mJgJcpVWjgUnsqqSPn3XLpezdztBe5MT/view?usp=drive_link\n화공	화학공학일반	https://drive.google.com/file/d/14PB9032Nh12i85fNfiT7gSa-gQklSi2I/view?usp=sharing`;
+    const lines = data.trim().split('\n').slice(1);
+    const 직렬별 = {};
+    lines.forEach(line => {
+      const [직렬, 과목, 링크] = line.split('\t');
+      if (!직렬별[직렬]) 직렬별[직렬] = [];
+      직렬별[직렬].push({ 과목, 링크 });
+    });
+    const container = document.getElementById('subject-links');
+    function renderList(filter = '') {
+      container.innerHTML = '';
+      Object.keys(직렬별).forEach(직렬 => {
+        const filtered = 직렬별[직렬].filter(({
+          과목
+        }) => 직렬.includes(filter) || 과목.includes(filter));
+        if (filtered.length > 0 || filter === '') {
+          const card = document.createElement('div');
+          card.className = 'card';
+          const h2 = document.createElement('h2');
+          h2.textContent = 직렬;
+          card.appendChild(h2);
+          const ul = document.createElement('ul');
+          filtered.forEach(({
+            과목, 링크
+          }) => {
+            const li = document.createElement('li');
+            const a = document.createElement('a');
+            a.href = 링크;
+            a.textContent = 과목;
+            a.target = '_blank';
+            li.appendChild(a);
+            ul.appendChild(li);
+          });
+          card.appendChild(ul);
+          container.appendChild(card);
+        }
+      });
+    }
+    document.getElementById('search').addEventListener('input', (e) => {
+      renderList(e.target.value.trim());
+    });
+    renderList();
+  </script></div>
+<script>
+function showTab(tab) {
+  document.getElementById("recommend-tab").style.display = tab === 'recommend' ? 'block' : 'none';
+  document.getElementById("subject-tab").style.display = tab === 'subject' ? 'block' : 'none';
+  if (tab === 'subject' && typeof renderList === 'function') {
+    renderList();
   }
+}
+window.onload = function() {
+  showTab('recommend');
+}
 </script>
 </body>
 </html>
